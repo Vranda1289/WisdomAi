@@ -1,0 +1,135 @@
+import { motion, AnimatePresence } from "framer-motion";
+import { copy } from "../constants/copy";
+import { Button } from "../components/ui/Button";
+import { useTheme } from "../context/ThemeContext";
+import { themes } from "../constants/themes";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
+import heroWarm from "../assets/images/hero-warm.png";
+import heroNight from "../assets/images/hero-dark.jpg";
+
+export const LandingPage = () => {
+  const { theme } = useTheme();
+  const isNight = theme === themes.NIGHT_REFLECTION;
+
+  return (
+    <section className="relative h-screen w-full overflow-hidden">
+
+      {/* Floating Theme Switch */}
+      <ThemeToggle />
+
+      {/* Background Images */}
+      <AnimatePresence>
+        <motion.img
+          key={theme}
+          src={isNight ? heroNight : heroWarm}
+          alt="Wisdom AI Background"
+          draggable={false}
+          initial={{ opacity: 0, scale: 1.08 }}
+          animate={{
+            opacity: 1,
+            scale: [1.08, 1.11, 1.08],
+            x: [0, -10, 0],
+            y: [0, -5, 0],
+          }}
+          exit={{ opacity: 0 }}
+          transition={{
+            opacity: { duration: 0.8 },
+            scale: { duration: 30, repeat: Infinity, ease: "easeInOut" },
+            x: { duration: 30, repeat: Infinity, ease: "easeInOut" },
+            y: { duration: 30, repeat: Infinity, ease: "easeInOut" },
+          }}
+          className="absolute inset-0 w-full h-full object-cover object-[74%_center]"
+        />
+      </AnimatePresence>
+
+      {/* Warm Overlay */}
+      <div
+        className={`absolute inset-0 z-10 transition-opacity duration-700 bg-gradient-to-r from-[#FCF8F2]/82 via-[#FCF8F2]/45 to-transparent pointer-events-none ${isNight ? 'opacity-0' : 'opacity-100'}`}
+      />
+
+      {/* Night Overlay */}
+      <div
+        className={`absolute inset-0 z-10 transition-opacity duration-700 bg-gradient-to-r from-[#0B1120]/90 via-[#0B1120]/60 to-transparent pointer-events-none ${isNight ? 'opacity-100' : 'opacity-0'}`}
+      />
+
+      {/* Right Shadow */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-l from-black/20 via-transparent to-transparent pointer-events-none" />
+
+      {/* Hero */}
+      <div className="relative z-20 flex items-center h-screen">
+
+        <div className="max-w-7xl mx-auto w-full px-8 md:px-20">
+
+          <div className="max-w-2xl">
+
+            <motion.h1
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2 }}
+              className={`font-heading text-5xl md:text-7xl leading-[1.05] tracking-tight transition-colors duration-700 ${isNight ? 'text-[#F3F4F6]' : 'text-[#2F2018]'}`}
+            >
+              Wisdom begins
+              <br />
+              with being heard.
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className={`mt-8 max-w-lg text-[20px] leading-9 transition-colors duration-700 ${isNight ? 'text-[#D1D5DB]' : 'text-[#4A392E]'}`}
+            >
+              {copy.landing.subtitle}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="mt-10 flex flex-wrap gap-5"
+            >
+              <Button
+                className={`
+                rounded-full
+                px-8
+                py-3
+                shadow-lg
+                transition-all
+                duration-700
+                ${isNight
+                    ? 'bg-white/20 hover:bg-white/30 text-white border border-white/20'
+                    : 'bg-[#A65D40] hover:bg-[#8E4B31] text-white'}
+                `}
+              >
+                {copy.landing.buttons.primary}
+              </Button>
+
+              <Button
+                variant="ghost"
+                className={`
+                rounded-full
+                border
+                backdrop-blur-md
+                px-8
+                py-3
+                transition-all
+                duration-700
+                ${isNight
+                    ? 'border-white/30 text-white/90 bg-white/10 hover:bg-white/20'
+                    : 'border-[#A65D40] text-[#5A3C2E] bg-white/15 hover:bg-white/25'}
+                `}
+              >
+                {copy.landing.buttons.secondary}
+              </Button>
+
+            </motion.div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+  );
+};
