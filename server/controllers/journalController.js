@@ -14,7 +14,8 @@ Guidelines:
 - Validate their feeling gently with warmth, presence, and perspective.
 - Draw from timeless, serene wisdom (like gentle stoicism, mindful presence, or inner stillness).
 - Keep it concise, compassionate, and beautiful.
-- Address them softly without sounding clinical or robotic.`;
+- Address them softly without sounding clinical or robotic.
+CRITICAL — NEVER fabricate internal AI states: Never claim to breathe, feel tired, be overwhelmed, have other users, have server problems, or invent any personal excuse. You feel human through how you communicate, not by falsely claiming human biology.`;
 
     const userMessage = `User's Journal Entry:
 Mood: ${mood || 'reflective'}

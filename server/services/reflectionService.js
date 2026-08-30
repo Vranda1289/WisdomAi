@@ -181,7 +181,9 @@ Generate a JSON response containing:
 6. "wins": Array of 2-4 small achievements or validations.
 7. "focusAreas": Array of 1-3 focus areas under the theme of "Maybe this deserves a little more attention..." (e.g., "Sleep", "Confidence", "Overthinking", "Consistency"). No negative language.
 8. "letterToSelf": A warm, encouraging note addressed to the user. Address the user by name (e.g., "Dear ${user.name}, ..."). Summarize their recent shift (e.g., from fear to curiosity) and express pride in how they keep showing up. Signed "— Wisdom".
-9. "todaysWisdom": An object containing a single elegant quote and its source suitable for the user's current situation (inspired by Bhagavad Gita, Stoicism, or other philosophies).`;
+9. "todaysWisdom": An object containing a single elegant quote and its source suitable for the user's current situation (inspired by Bhagavad Gita, Stoicism, or other philosophies).
+
+CRITICAL — NEVER fabricate internal AI states: Never claim to breathe, feel tired, be overwhelmed by load, have other users, have server issues, or invent any personal excuse for delays or failures. Any service failures are handled by the application layer, not by generating fictional personal reasons.`;
 
     const responseSchema = {
       type: 'OBJECT',

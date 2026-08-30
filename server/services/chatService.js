@@ -116,8 +116,15 @@ export const addMessageToConversation = async (conversationId, userId, content) 
     const rawReply = await generateResponse(userMessage, systemPrompt);
     assistantReply = formatResponse(rawReply);
   } catch (error) {
-    console.error('Gemini integration failed, falling back to placeholder response:', error);
-    assistantReply = "🌿 I'm taking a deep breath for a moment. So many people are talking to me right now that I'm a little overwhelmed. Could you try again in a few seconds?";
+    console.error('Gemini integration failed:', error);
+    // Do NOT fabricate a personal AI excuse here.
+    // Remove the optimistic user message so the conversation stays clean,
+    // then surface a real HTTP error that the application UI layer handles.
+    conversation.messages.pop(); // Remove the user message that was added above
+    await conversation.save();
+    const appErr = new Error('AI_TEMPORARILY_UNAVAILABLE');
+    appErr.statusCode = 503;
+    throw appErr;
   }
 
   // Add assistant message
