@@ -6,6 +6,7 @@ import { NotFound } from '../pages/NotFound';
 import { ChatPage } from '../pages/ChatPage';
 import { ReflectionDashboard } from '../pages/ReflectionDashboard';
 import { JournalPage } from '../pages/JournalPage';
+import { CalmCorner } from '../pages/CalmCorner';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 
 export const AppRoutes = () => {
@@ -24,6 +25,11 @@ export const AppRoutes = () => {
       <Route path="/journal" element={
         <ProtectedRoute>
           <JournalPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/calm-corner" element={
+        <ProtectedRoute>
+          <CalmCorner />
         </ProtectedRoute>
       } />
       <Route path="/" element={<MainLayout />}>

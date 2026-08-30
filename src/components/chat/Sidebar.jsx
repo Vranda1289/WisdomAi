@@ -403,6 +403,13 @@ export const Sidebar = ({
           <span className="text-sm select-none">📖</span> Sanctuary Journal
         </button>
         <button 
+          onClick={() => navigate('/calm-corner')}
+          className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent ${isNight ? 'hover:bg-white/10 text-white/80' : 'hover:bg-[#3D2A1D]/5 text-[#3D2A1D]/80'}`}
+          aria-label="Calm Corner"
+        >
+          <span className="text-sm select-none">🌿</span> Calm Corner
+        </button>
+        <button 
           onClick={() => navigate('/settings')}
           className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent ${isNight ? 'hover:bg-white/10 text-white/80' : 'hover:bg-[#3D2A1D]/5 text-[#3D2A1D]/80'}`}
           aria-label="Settings"

@@ -7,7 +7,7 @@ import { useAuthModal } from '../../context/AuthModalContext';
 import { useAuth } from '../../context/AuthContext';
 import { themes } from '../../constants/themes';
 import { ThemeToggle } from '../ui/ThemeToggle';
-import { Menu, X, MessageSquare, Compass, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Menu, X, MessageSquare, Compass, BookOpen, Settings, LogOut, Leaf } from 'lucide-react';
 
 export const Navbar = () => {
   const { theme } = useTheme();
@@ -42,6 +42,7 @@ export const Navbar = () => {
     { name: copy.navigation.home, path: '/' },
     { name: copy.navigation.wisdom, path: '/reflection' },
     { name: copy.navigation.journal, path: '/journal' },
+    { name: copy.navigation.calmCorner, path: '/calm-corner' },
     { name: copy.navigation.about, path: '/settings' },
   ];
 
@@ -163,6 +164,16 @@ export const Navbar = () => {
                       >
                         <BookOpen size={14} className="text-amber-500" />
                         <span>Sanctuary Journal</span>
+                      </button>
+
+                      <button 
+                        onClick={() => { setIsDropdownOpen(false); navigate('/calm-corner'); }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors flex items-center gap-2.5 ${
+                          isNight ? 'hover:bg-white/10' : 'hover:bg-[#A65D40]/10 text-[#2E1C12]'
+                        }`}
+                      >
+                        <Leaf size={14} className="text-emerald-400" />
+                        <span>Calm Corner</span>
                       </button>
 
                       <button 
