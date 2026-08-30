@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { copy } from '../constants/copy';
 import { settings } from '../constants/settings';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { themes } from '../constants/themes';
-import { Check, Sparkles, Moon, Sun, Globe, Heart, Shield, LogOut, User } from 'lucide-react';
+import { Check, Sparkles, Globe, Heart, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Settings = () => {
@@ -15,11 +14,11 @@ export const Settings = () => {
   const isNight = theme === themes.NIGHT_REFLECTION;
 
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
-    return localStorage.getItem('wisdom_pref_language') || 'en';
+    return user?.language || localStorage.getItem('wisdom_pref_language') || 'en';
   });
 
   const [selectedStyle, setSelectedStyle] = useState(() => {
-    return localStorage.getItem('wisdom_pref_style') || 'gentle';
+    return user?.companionStyle || localStorage.getItem('wisdom_pref_style') || 'gentle';
   });
 
   const [savedNotice, setSavedNotice] = useState('');
@@ -29,21 +28,42 @@ export const Settings = () => {
     setTimeout(() => setSavedNotice(''), 2500);
   };
 
-  const handleLanguageChange = (langId) => {
+  const handleLanguageChange = async (langId) => {
     setSelectedLanguage(langId);
     localStorage.setItem('wisdom_pref_language', langId);
     showSavedNotice('Language preference saved.');
+    if (user) {
+      try {
+        await api.put('/api/auth/preferences', { language: langId });
+      } catch (err) {
+        console.error('Failed to sync language preference to server:', err);
+      }
+    }
   };
 
-  const handleStyleChange = (styleId) => {
+  const handleStyleChange = async (styleId) => {
     setSelectedStyle(styleId);
     localStorage.setItem('wisdom_pref_style', styleId);
-    showSavedNotice('Conversation style updated.');
+    showSavedNotice('Companion tone updated.');
+    if (user) {
+      try {
+        await api.put('/api/auth/preferences', { companionStyle: styleId });
+      } catch (err) {
+        console.error('Failed to sync companion style to server:', err);
+      }
+    }
   };
 
-  const handleThemeChange = (spaceId) => {
+  const handleThemeChange = async (spaceId) => {
     setSpecificTheme(spaceId);
-    showSavedNotice('Sanctuary theme updated.');
+    showSavedNotice('Sanctuary space updated.');
+    if (user) {
+      try {
+        await api.put('/api/auth/preferences', { theme: spaceId });
+      } catch (err) {
+        console.error('Failed to sync theme preference to server:', err);
+      }
+    }
   };
 
   const handleLogout = () => {

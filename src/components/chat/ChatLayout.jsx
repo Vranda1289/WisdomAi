@@ -219,8 +219,10 @@ export const ChatLayout = () => {
   const handleSendMessage = async (messageText) => {
     if (!messageText.trim()) return;
 
-    // 1. Create the optimistic user message object
+    // 1. Create the optimistic user message object with unique temporary ID
+    const tempId = 'temp_' + Date.now();
     const optimisticUserMsg = {
+      _id: tempId,
       role: 'user',
       content: messageText,
       createdAt: new Date().toISOString()
@@ -252,18 +254,20 @@ export const ChatLayout = () => {
         conv = { ...conv, title: customTitles[conv._id] };
       }
 
-      // Extract only the new assistant message from the returned conversation
       const latestMessages = conv.messages || [];
-      const assistantMsg = latestMessages[latestMessages.length - 1];
-
-      if (assistantMsg && assistantMsg.role === 'assistant') {
-        const assistantMsgWithAnimation = { ...assistantMsg, animateTyping: true };
-        
-        setIsTyping(true);
-        // Append only the assistant response to local messages state
-        setMessages(prev => [...prev, assistantMsgWithAnimation]);
+      if (latestMessages.length > 0) {
+        const lastMsg = latestMessages[latestMessages.length - 1];
+        if (lastMsg.role === 'assistant') {
+          setIsTyping(true);
+          const formattedMessages = [
+            ...latestMessages.slice(0, -1),
+            { ...lastMsg, animateTyping: true }
+          ];
+          setMessages(formattedMessages);
+        } else {
+          setMessages(latestMessages);
+        }
       } else {
-        // Fallback to sync the whole messages array
         setMessages(latestMessages);
       }
 
@@ -271,7 +275,6 @@ export const ChatLayout = () => {
 
       if (isNew) {
         setConversations(prev => [conv, ...prev]);
-        // Trigger background AI Title generation after first response
         generateAiTitle(conv._id, messageText);
       } else {
         setConversations(prev => {

@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuthModal } from '../../context/AuthModalContext';
 import { useAuth } from '../../context/AuthContext';
 import { themes } from '../../constants/themes';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import { Menu, X, MessageSquare, Compass, BookOpen, Settings, LogOut } from 'lucide-react';
 
 export const Navbar = () => {
@@ -96,8 +97,9 @@ export const Navbar = () => {
           })}
         </div>
 
-        {/* Right Section: Profile / Sign In + Mobile Hamburger */}
+        {/* Right Section: Theme Toggle + Profile / Sign In + Mobile Hamburger */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <motion.button

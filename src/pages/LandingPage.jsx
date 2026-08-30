@@ -6,7 +6,6 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { useAuthModal } from "../context/AuthModalContext";
 import { themes } from "../constants/themes";
-import { ThemeToggle } from "../components/ui/ThemeToggle";
 import heroWarm from "../assets/images/hero-warm.png";
 import heroNight from "../assets/images/hero-dark.jpg";
 
@@ -36,22 +35,19 @@ export const LandingPage = () => {
   return (
     <section className="relative h-screen w-full overflow-hidden">
 
-      {/* Floating Theme Switch */}
-      <ThemeToggle />
-
-      {/* Background Images */}
+      {/* Atmospheric Background Images */}
       <AnimatePresence>
         <motion.img
           key={theme}
           src={isNight ? heroNight : heroWarm}
-          alt="Wisdom AI Background"
+          alt="Wisdom AI Atmospheric Sanctuary"
           draggable={false}
-          initial={{ opacity: 0, scale: 1.08 }}
+          initial={{ opacity: 0, scale: 1.05 }}
           animate={{
             opacity: 1,
-            scale: [1.08, 1.11, 1.08],
-            x: [0, -10, 0],
-            y: [0, -5, 0],
+            scale: [1.05, 1.08, 1.05],
+            x: [0, -6, 0],
+            y: [0, -4, 0],
           }}
           exit={{ opacity: 0 }}
           transition={{
@@ -64,18 +60,32 @@ export const LandingPage = () => {
         />
       </AnimatePresence>
 
-      {/* Warm Overlay */}
+      {/* Warm Daylight Atmospheric Overlays */}
       <div
-        className={`absolute inset-0 z-10 transition-opacity duration-700 bg-gradient-to-r from-[#FCF8F2]/82 via-[#FCF8F2]/45 to-transparent pointer-events-none ${isNight ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-gradient-to-r from-[#FCF8F2]/90 via-[#FCF8F2]/65 to-transparent pointer-events-none ${
+          isNight ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
+      <div
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-radial-at-tl from-amber-200/20 via-transparent to-transparent pointer-events-none ${
+          isNight ? 'opacity-0' : 'opacity-100'
+        }`}
       />
 
-      {/* Night Overlay */}
+      {/* Deep Night Atmospheric Overlays */}
       <div
-        className={`absolute inset-0 z-10 transition-opacity duration-700 bg-gradient-to-r from-[#0B1120]/90 via-[#0B1120]/60 to-transparent pointer-events-none ${isNight ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-gradient-to-r from-[#0B1120]/95 via-[#0B1120]/75 to-black/30 pointer-events-none ${
+          isNight ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+      <div
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-radial-at-tr from-blue-900/15 via-transparent to-black/40 pointer-events-none ${
+          isNight ? 'opacity-100' : 'opacity-0'
+        }`}
       />
 
-      {/* Right Shadow */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-l from-black/20 via-transparent to-transparent pointer-events-none" />
+      {/* Subtle Environmental Vignette */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/30 via-transparent to-black/15 pointer-events-none" />
 
       {/* Hero Content */}
       <div className="relative z-20 flex items-center h-screen">
@@ -85,7 +95,9 @@ export const LandingPage = () => {
               initial={{ opacity: 0, y: 25 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2 }}
-              className={`font-heading text-5xl md:text-7xl leading-[1.05] tracking-tight transition-colors duration-700 ${isNight ? 'text-[#F3F4F6]' : 'text-[#2F2018]'}`}
+              className={`font-heading text-5xl md:text-7xl leading-[1.05] tracking-tight transition-colors duration-700 ${
+                isNight ? 'text-[#F3F4F6]' : 'text-[#2F2018]'
+              }`}
             >
               Wisdom begins
               <br />
@@ -96,7 +108,9 @@ export const LandingPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
-              className={`mt-8 max-w-lg text-[20px] leading-9 transition-colors duration-700 ${isNight ? 'text-[#D1D5DB]' : 'text-[#4A392E]'}`}
+              className={`mt-8 max-w-lg text-[20px] leading-9 transition-colors duration-700 ${
+                isNight ? 'text-[#D1D5DB]' : 'text-[#4A392E]'
+              }`}
             >
               {copy.landing.subtitle}
             </motion.p>
@@ -112,7 +126,7 @@ export const LandingPage = () => {
                 className={`
                   rounded-full
                   px-8
-                  py-3
+                  py-3.5
                   shadow-lg
                   transition-all
                   duration-700
@@ -132,12 +146,12 @@ export const LandingPage = () => {
                   border
                   backdrop-blur-md
                   px-8
-                  py-3
+                  py-3.5
                   transition-all
                   duration-700
                   ${isNight
                     ? 'border-white/30 text-white/90 bg-white/10 hover:bg-white/20'
-                    : 'border-[#A65D40] text-[#5A3C2E] bg-white/15 hover:bg-white/25'}
+                    : 'border-[#A65D40] text-[#5A3C2E] bg-white/20 hover:bg-white/35'}
                 `}
               >
                 {user ? "View Reflection" : copy.landing.buttons.secondary}

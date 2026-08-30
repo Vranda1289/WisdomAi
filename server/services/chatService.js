@@ -107,7 +107,9 @@ export const addMessageToConversation = async (conversationId, userId, content) 
       conversation.messages,
       { 
         personalMemories,
-        relationshipMode: user?.adaptiveRelationship?.relationshipMode || 'Calm Guide'
+        relationshipMode: user?.adaptiveRelationship?.relationshipMode || 'Calm Guide',
+        companionStyle: user?.companionStyle || 'gentle',
+        language: user?.language || 'en'
       },
       adaptiveDecorator
     );

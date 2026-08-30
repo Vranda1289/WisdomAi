@@ -102,7 +102,7 @@ export const ChatArea = ({
                   >
                     {messages.map((msg, idx) => (
                       <MessageBubble 
-                        key={idx}
+                        key={msg._id || `msg_${idx}_${msg.role}_${msg.createdAt || ''}`}
                         message={msg}
                         index={idx}
                         onRegenerate={onRegenerate}

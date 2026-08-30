@@ -48,6 +48,7 @@ const registerUser = async (req, res, next) => {
           email: user.email,
           theme: user.theme,
           language: user.language,
+          companionStyle: user.companionStyle || 'gentle',
           token: generateToken(user._id),
         }
       });
@@ -85,6 +86,7 @@ const loginUser = async (req, res, next) => {
           email: user.email,
           theme: user.theme,
           language: user.language,
+          companionStyle: user.companionStyle || 'gentle',
           token: generateToken(user._id),
         }
       });
@@ -118,4 +120,40 @@ const getCurrentUser = async (req, res, next) => {
   }
 };
 
-export { registerUser, loginUser, getCurrentUser };
+// @desc    Update user sanctuary preferences (theme, language, companionStyle)
+// @route   PUT /api/auth/preferences
+// @access  Private
+const updatePreferences = async (req, res, next) => {
+  try {
+    const { theme, language, companionStyle } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      res.status(404);
+      throw new Error('User not found');
+    }
+
+    if (theme !== undefined) user.theme = theme;
+    if (language !== undefined) user.language = language;
+    if (companionStyle !== undefined) user.companionStyle = companionStyle;
+
+    const updatedUser = await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Preferences updated successfully',
+      data: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        theme: updatedUser.theme,
+        language: updatedUser.language,
+        companionStyle: updatedUser.companionStyle || 'gentle'
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { registerUser, loginUser, getCurrentUser, updatePreferences };

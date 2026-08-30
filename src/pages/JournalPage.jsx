@@ -115,7 +115,7 @@ export const JournalPage = () => {
     setIsSaving(true);
     try {
       const res = await api.post('/api/journal', {
-        title: title.trim() || `Reflections — ${new Date().toLocaleDateString()}`,
+        title: title.trim() || `Reflections — ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`,
         content: content.trim(),
         mood: selectedMood,
         prompt: selectedPrompt.text,
@@ -127,6 +127,25 @@ export const JournalPage = () => {
       setSelectedEntry(newEntry);
       setIsWriting(false);
       setContent('');
+
+      // If AI echo was requested, poll for it in background after 2.5s
+      if (withAiEcho) {
+        setIsEchoing(true);
+        setTimeout(async () => {
+          try {
+            const entryRes = await api.get(`/api/journal/${newEntry._id}`);
+            if (entryRes.data?.data) {
+              const updated = entryRes.data.data;
+              setSelectedEntry(updated);
+              setEntries(prev => prev.map(item => item._id === updated._id ? updated : item));
+            }
+          } catch (err) {
+            console.error('Failed to retrieve async echo:', err);
+          } finally {
+            setIsEchoing(false);
+          }
+        }, 2500);
+      }
     } catch (err) {
       console.error('Failed to save journal entry:', err);
     } finally {
@@ -573,7 +592,7 @@ export const JournalPage = () => {
                       >
                         {isSaving ? (
                           <>
-                            <span className="animate-spin text-sm">✦</span> Reflecting & Saving...
+                            <span className="animate-spin text-sm">✦</span> Saving reflection...
                           </>
                         ) : (
                           <>
@@ -663,7 +682,7 @@ export const JournalPage = () => {
                           Wisdom's Gentle Echo
                         </h3>
                       </div>
-                      {!selectedEntry.aiEcho && (
+                      {!selectedEntry.aiEcho && !isEchoing && (
                         <button
                           onClick={handleGenerateEchoForSelected}
                           disabled={isEchoing}
@@ -673,7 +692,7 @@ export const JournalPage = () => {
                               : 'bg-white hover:bg-stone-50 text-[#3D2A1D] border-stone-200'
                           }`}
                         >
-                          {isEchoing ? 'Echoing...' : 'Ask Wisdom to Reflect'}
+                          Ask Wisdom to Reflect
                         </button>
                       )}
                     </div>
@@ -684,11 +703,17 @@ export const JournalPage = () => {
                       }`}>
                         "{selectedEntry.aiEcho}"
                       </p>
+                    ) : isEchoing ? (
+                      <p className={`text-xs leading-relaxed italic animate-pulse flex items-center gap-2 ${
+                        isNight ? 'text-accent' : 'text-[#A65D40]'
+                      }`}>
+                        <span>✨</span> Wisdom is quietly reflecting on your words...
+                      </p>
                     ) : (
                       <p className={`text-xs leading-relaxed font-light ${
                         isNight ? 'text-white/50' : 'text-[#3D2A1D]/60'
                       }`}>
-                        Wisdom AI has not echoed this entry yet. Tap above whenever you'd like a peaceful thought in return.
+                        Wisdom AI has not echoed this entry yet. Tap above whenever you'd like a peaceful reflection.
                       </p>
                     )}
                   </div>

@@ -2,33 +2,34 @@ import { motion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 import { themes } from "../../constants/themes";
-import { createPortal } from "react-dom";
 
-export const ThemeToggle = () => {
+export const ThemeToggle = ({ className = "" }) => {
   const { theme, toggleTheme } = useTheme();
-
   const isNight = theme === themes.NIGHT_REFLECTION;
 
-  return createPortal(
+  return (
     <motion.button
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.03 }}
+      type="button"
+      whileTap={{ scale: 0.94 }}
+      whileHover={{ scale: 1.04 }}
       onClick={toggleTheme}
-      className="
-        fixed
-        top-6
-        right-8
-        z-[99999]
-        w-[82px]
-        h-[38px]
+      className={`
+        relative
+        w-[76px]
+        h-[34px]
         rounded-full
-        bg-black/20
         backdrop-blur-xl
         border
-        border-white/20
-        shadow-xl
+        shadow-sm
         overflow-hidden
-      "
+        flex-shrink-0
+        transition-colors
+        duration-500
+        ${isNight ? 'bg-white/10 border-white/20' : 'bg-black/10 border-[#2E1C12]/20'}
+        ${className}
+      `}
+      aria-label="Toggle light and dark theme"
+      title={isNight ? "Switch to Winter Morning" : "Switch to Night Reflection"}
     >
       {/* Sliding Circle */}
       <motion.div
@@ -43,10 +44,10 @@ export const ThemeToggle = () => {
         }}
         className="
           absolute
-          top-1
+          top-[3px]
           left-0
-          w-8
-          h-8
+          w-7
+          h-7
           rounded-full
           bg-white
           shadow-md
@@ -54,26 +55,27 @@ export const ThemeToggle = () => {
       />
 
       {/* Icons */}
-      <div className="relative z-10 flex h-full items-center justify-between px-3">
+      <div className="relative z-10 flex h-full items-center justify-between px-2.5">
         <Sun
-          size={16}
+          size={14}
           className={
             !isNight
               ? "text-[#F59E0B]"
-              : "text-white/50"
+              : "text-white/40"
           }
         />
 
         <Moon
-          size={16}
+          size={14}
           className={
             isNight
               ? "text-[#1E293B]"
-              : "text-white/50"
+              : "text-[#3D2A1D]/40"
           }
         />
       </div>
-    </motion.button>,
-    document.body
+    </motion.button>
   );
 };
+
+export default ThemeToggle;

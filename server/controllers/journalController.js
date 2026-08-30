@@ -66,7 +66,7 @@ export const getJournalById = async (req, res, next) => {
   }
 };
 
-// @desc    Create a new journal entry
+// @desc    Create a new journal entry (Instant save + async AI echo)
 // @route   POST /api/journal
 // @access  Private
 export const createJournal = async (req, res, next) => {
@@ -78,25 +78,35 @@ export const createJournal = async (req, res, next) => {
       throw new Error('Journal content is required');
     }
 
-    let aiEcho = '';
-    if (withAiEcho) {
-      aiEcho = await createAiEcho(content, mood, prompt);
-    }
-
+    // 1. Immediately save the journal to database
     const journal = await Journal.create({
       user: req.user._id,
       title: title && title.trim() ? title.trim() : 'Reflections for Today',
       content: content.trim(),
       mood: mood || 'reflective',
       prompt: prompt || '',
-      aiEcho: aiEcho,
+      aiEcho: '',
     });
 
+    // 2. Return response immediately so user is never blocked
     res.status(201).json({
       success: true,
       message: 'Journal entry saved successfully',
       data: journal,
     });
+
+    // 3. Asynchronously generate AI Echo in background if requested
+    if (withAiEcho) {
+      createAiEcho(content, mood, prompt)
+        .then(async (echo) => {
+          if (echo) {
+            await Journal.findByIdAndUpdate(journal._id, { aiEcho: echo });
+          }
+        })
+        .catch((err) => {
+          console.error('Async AI Echo generation failed:', err);
+        });
+    }
   } catch (error) {
     next(error);
   }

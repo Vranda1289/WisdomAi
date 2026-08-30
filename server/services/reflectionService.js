@@ -99,6 +99,27 @@ const WISDOM_QUOTES = [
   { quote: "Do not dwell in the past, do not dream of the future, concentrate the mind on the present moment.", source: "Inspired by Buddha" }
 ];
 
+/**
+ * Fast synchronous calculation of user stats without waiting for AI generation
+ */
+export const getFastReflectionStats = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+
+  const conversations = await Conversation.find({ user: userId }).select('updatedAt createdAt messages');
+  const stats = computeStreakStats(conversations);
+  const daysGrowing = Math.max(1, Math.ceil((Date.now() - user.createdAt) / (1000 * 60 * 60 * 24)));
+
+  return {
+    daysGrowing,
+    totalConversations: conversations.length,
+    currentStreak: stats.currentStreak,
+    longestStreak: stats.longestStreak,
+    hoursReflecting: stats.hoursReflecting,
+    userName: user.name
+  };
+};
+
 export const generateReflectionDashboard = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('User not found');
