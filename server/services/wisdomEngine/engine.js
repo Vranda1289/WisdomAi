@@ -6,6 +6,7 @@ import { safetyRulesPrompt } from './safetyRules.js';
 import { responseFrameworkPrompt } from './responseFramework.js';
 import { prepareMemoryContext } from './memoryPreparation.js';
 import { conversationIntelligencePrompt } from './conversationIntelligence.js';
+import assembleConversationGuidelines from './conversation/conversationAssembler.js';
 
 
 // Intent classifier keywords and phrases
@@ -71,6 +72,11 @@ export const preparePrompt = (messages = [], options = {}, adaptiveDecorator = '
   // Set up adaptive relationship layer decorator if passed in options
   const activeDecorator = adaptiveDecorator || options.adaptiveDecorator || '';
 
+  // Assemble dynamic human conversation guidelines
+  const conversationGuidelines = assembleConversationGuidelines({
+    relationshipMode: options.relationshipMode || 'Calm Guide'
+  });
+
   // Aggregated System Prompt Core
   let systemPrompt = `
 ${personalityPrompt}
@@ -80,6 +86,8 @@ ${wisdomRulesPrompt}
 ${safetyRulesPrompt}
 ${responseFrameworkPrompt}
 ${conversationIntelligencePrompt}
+
+${conversationGuidelines}
 
 ${activeDecorator}
 

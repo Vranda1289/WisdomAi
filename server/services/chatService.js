@@ -8,6 +8,8 @@ import {
   detectCurrentTone,
   generateAdaptivePromptDecorator
 } from './wisdomEngine/adaptiveRelationshipLayer.js';
+import * as memoryService from './memoryService.js';
+import { extractMemory } from './memoryExtractor.js';
 
 
 /**
@@ -89,10 +91,26 @@ export const addMessageToConversation = async (conversationId, userId, content) 
     console.error('Failed to process adaptive relationship layer preferences:', err);
   }
 
+  // Load relevant memories to inject into wisdom engine
+  let personalMemories = [];
+  try {
+    const relevantMemories = await memoryService.findRelevantMemories(userId, content);
+    personalMemories = relevantMemories.map(m => m.content);
+  } catch (err) {
+    console.error('Failed to retrieve relevant memories:', err);
+  }
+
   let assistantReply;
   try {
     // Generate context-aware prompt using Wisdom Engine
-    const { systemPrompt, userMessage } = preparePrompt(conversation.messages, {}, adaptiveDecorator);
+    const { systemPrompt, userMessage } = preparePrompt(
+      conversation.messages,
+      { 
+        personalMemories,
+        relationshipMode: user?.adaptiveRelationship?.relationshipMode || 'Calm Guide'
+      },
+      adaptiveDecorator
+    );
     const rawReply = await generateResponse(userMessage, systemPrompt);
     assistantReply = formatResponse(rawReply);
   } catch (error) {
@@ -107,7 +125,30 @@ export const addMessageToConversation = async (conversationId, userId, content) 
     createdAt: new Date()
   });
 
-  return await conversation.save();
+  const savedConversation = await conversation.save();
+
+  // Non-blocking background memory extraction and storage
+  extractAndSaveMemoryBackground(userId, content).catch(err => {
+    console.error('Error in background memory extraction:', err);
+  });
+
+  return savedConversation;
+};
+
+/**
+ * Asynchronously extracts and saves a memory from a user message.
+ * @param {string} userId
+ * @param {string} content
+ */
+const extractAndSaveMemoryBackground = async (userId, content) => {
+  try {
+    const candidate = await extractMemory(content);
+    if (candidate && candidate.shouldRemember) {
+      await memoryService.saveMemory(userId, candidate, content);
+    }
+  } catch (err) {
+    console.error('Failed to extract/save memory in background:', err);
+  }
 };
 
 

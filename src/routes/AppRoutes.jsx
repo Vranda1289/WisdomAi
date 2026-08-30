@@ -4,6 +4,8 @@ import { LandingPage } from '../pages/LandingPage';
 import { Settings } from '../pages/Settings';
 import { NotFound } from '../pages/NotFound';
 import { ChatPage } from '../pages/ChatPage';
+import { ReflectionDashboard } from '../pages/ReflectionDashboard';
+import { JournalPage } from '../pages/JournalPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 
 export const AppRoutes = () => {
@@ -12,6 +14,16 @@ export const AppRoutes = () => {
       <Route path="/chat" element={
         <ProtectedRoute>
           <ChatPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/reflection" element={
+        <ProtectedRoute>
+          <ReflectionDashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/journal" element={
+        <ProtectedRoute>
+          <JournalPage />
         </ProtectedRoute>
       } />
       <Route path="/" element={<MainLayout />}>

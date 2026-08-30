@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import reflectionRoutes from './routes/reflectionRoutes.js';
+import journalRoutes from './routes/journalRoutes.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -13,6 +15,8 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/reflection', reflectionRoutes);
+app.use('/api/journal', journalRoutes);
 
 // Sample Route
 app.get('/', (req, res) => {

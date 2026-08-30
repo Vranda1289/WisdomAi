@@ -188,43 +188,31 @@ export const ChatLayout = () => {
     }
   };
 
-  // Background title generator to keep APIs intact
-  const generateAiTitle = async (conversationId, firstUserMessage) => {
+  // Elegant local & stored title generator from first message
+  const generateAiTitle = (conversationId, firstUserMessage) => {
     try {
-      // 1. Create a short-lived temporary conversation
-      const tempRes = await api.post('/api/chat/new');
-      const tempId = tempRes.data.data._id;
-      
-      // 2. Generate a clean title via custom prompt
-      const prompt = `Generate a short 2-3 word title (e.g. "Exam Stress", "Sleep Improvement") for a conversation starting with the message: "${firstUserMessage}". Return ONLY the title, no quotes or periods.`;
-      const messageRes = await api.post(`/api/chat/${tempId}/message`, {
-        content: prompt
-      });
-      
-      const responseText = messageRes.data.data.messages[1].content;
-      const cleanTitle = responseText.replace(/["'./]/g, '').trim();
+      const words = firstUserMessage.trim().split(/\s+/).slice(0, 5).join(' ');
+      const cleanTitle = words.length > 35 ? words.slice(0, 32) + '...' : words;
+      const formattedTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
 
-      // 3. Delete the temporary conversation
-      await api.delete(`/api/chat/${tempId}`);
-
-      // 4. Save to local storage custom titles mapping
       const customTitles = JSON.parse(localStorage.getItem('wisdom_custom_titles') || '{}');
-      customTitles[conversationId] = cleanTitle;
-      localStorage.setItem('wisdom_custom_titles', JSON.stringify(customTitles));
+      if (!customTitles[conversationId]) {
+        customTitles[conversationId] = formattedTitle;
+        localStorage.setItem('wisdom_custom_titles', JSON.stringify(customTitles));
 
-      // 5. Update state
-      setConversations(prev => prev.map(c => {
-        if (c._id === conversationId) {
-          return { ...c, title: cleanTitle };
+        setConversations(prev => prev.map(c => {
+          if (c._id === conversationId) {
+            return { ...c, title: formattedTitle };
+          }
+          return c;
+        }));
+
+        if (currentConversation?._id === conversationId) {
+          setCurrentConversation(prev => prev ? { ...prev, title: formattedTitle } : null);
         }
-        return c;
-      }));
-
-      if (currentConversation?._id === conversationId) {
-        setCurrentConversation(prev => prev ? { ...prev, title: cleanTitle } : null);
       }
     } catch (err) {
-      console.error('Failed to automatically generate conversation title:', err);
+      console.error('Failed to generate conversation title:', err);
     }
   };
 

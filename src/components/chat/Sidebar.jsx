@@ -389,6 +389,21 @@ export const Sidebar = ({
       {/* Footer */}
       <div className={`pt-3 border-t mt-3 space-y-1 ${isNight ? 'border-white/10' : 'border-[#2E1C12]/10'}`}>
         <button 
+          onClick={() => navigate('/reflection')}
+          className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent ${isNight ? 'hover:bg-white/10 text-white/80' : 'hover:bg-[#3D2A1D]/5 text-[#3D2A1D]/80'}`}
+          aria-label="Reflection & Growth"
+        >
+          <span className="text-sm select-none">🌿</span> Reflection & Growth
+        </button>
+        <button 
+          onClick={() => navigate('/journal')}
+          className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent ${isNight ? 'hover:bg-white/10 text-white/80' : 'hover:bg-[#3D2A1D]/5 text-[#3D2A1D]/80'}`}
+          aria-label="Sanctuary Journal"
+        >
+          <span className="text-sm select-none">📖</span> Sanctuary Journal
+        </button>
+        <button 
+          onClick={() => navigate('/settings')}
           className={`w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent ${isNight ? 'hover:bg-white/10 text-white/80' : 'hover:bg-[#3D2A1D]/5 text-[#3D2A1D]/80'}`}
           aria-label="Settings"
         >

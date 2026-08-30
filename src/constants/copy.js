@@ -9,9 +9,9 @@ export const copy = {
   },
   navigation: {
     home: "Home",
-    wisdom: "Daily Wisdom",
-    journal: "Journal (Coming Soon)",
-    about: "About",
+    wisdom: "Reflection",
+    journal: "Journal",
+    about: "Settings",
     signIn: "Sign In",
   },
   errors: {
@@ -28,6 +28,6 @@ export const copy = {
   ],
   emptyStates: {
     journal: "Your journal is an empty canvas, waiting for your thoughts.",
-    wisdom: "No wisdom saved yet. Take your time.",
+    wisdom: "No reflections saved yet. Take your time.",
   },
 };

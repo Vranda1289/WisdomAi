@@ -1,7 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { themes } from '../../constants/themes';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTypingEffect } from '../../hooks/useTypingEffect';
 
 // Lazy load the Markdown Renderer

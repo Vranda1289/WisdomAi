@@ -25,30 +25,44 @@ const getAiClient = () => {
  * @returns {Promise<string>}
  */
 export const generateResponse = async (userMessage, systemPrompt = '') => {
-  try {
-    const ai = getAiClient();
-    const modelName = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const modelsToTry = [
+    process.env.GEMINI_MODEL,
+    'gemini-2.5-flash',
+    'gemini-1.5-flash',
+    'gemini-2.0-flash'
+  ].filter(Boolean);
 
-    let contents = userMessage;
-    if (systemPrompt) {
-      contents = `${systemPrompt}\n\n${userMessage}`;
+  // Remove duplicates while preserving priority
+  const candidateModels = Array.from(new Set(modelsToTry));
+
+  let lastError = null;
+
+  for (const modelName of candidateModels) {
+    try {
+      const ai = getAiClient();
+
+      let contents = userMessage;
+      if (systemPrompt) {
+        contents = `${systemPrompt}\n\n${userMessage}`;
+      }
+
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: contents,
+      });
+
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (error) {
+      lastError = error;
+      console.warn(`Gemini generation with model ${modelName} failed, trying fallback if available...`);
     }
-
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: contents,
-    });
-
-    if (!response || !response.text) {
-      throw new Error('No text returned from Gemini API');
-    }
-
-    return response.text;
-  } catch (error) {
-    // Mask error details to avoid leakage in logs
-    const apiKey = process.env.GEMINI_API_KEY || '';
-    const safeErrorMessage = error.message ? error.message.replace(apiKey, '[MASKED_KEY]') : 'Unknown API Error';
-    console.error('Gemini API Error:', safeErrorMessage);
-    throw new Error(safeErrorMessage);
   }
+
+  // Mask error details to avoid leakage in logs
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  const safeErrorMessage = lastError?.message ? lastError.message.replace(apiKey, '[MASKED_KEY]') : 'Unknown API Error';
+  console.error('All Gemini model candidates failed:', safeErrorMessage);
+  throw new Error(safeErrorMessage);
 };

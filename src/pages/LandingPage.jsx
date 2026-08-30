@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { copy } from "../constants/copy";
 import { Button } from "../components/ui/Button";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
+import { useAuthModal } from "../context/AuthModalContext";
 import { themes } from "../constants/themes";
 import { ThemeToggle } from "../components/ui/ThemeToggle";
 import heroWarm from "../assets/images/hero-warm.png";
@@ -9,7 +12,26 @@ import heroNight from "../assets/images/hero-dark.jpg";
 
 export const LandingPage = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const { openModal } = useAuthModal();
+  const navigate = useNavigate();
   const isNight = theme === themes.NIGHT_REFLECTION;
+
+  const handlePrimaryAction = () => {
+    if (user) {
+      navigate('/chat');
+    } else {
+      openModal('register');
+    }
+  };
+
+  const handleSecondaryAction = () => {
+    if (user) {
+      navigate('/reflection');
+    } else {
+      openModal('login');
+    }
+  };
 
   return (
     <section className="relative h-screen w-full overflow-hidden">
@@ -55,13 +77,10 @@ export const LandingPage = () => {
       {/* Right Shadow */}
       <div className="absolute inset-0 z-10 bg-gradient-to-l from-black/20 via-transparent to-transparent pointer-events-none" />
 
-      {/* Hero */}
+      {/* Hero Content */}
       <div className="relative z-20 flex items-center h-screen">
-
         <div className="max-w-7xl mx-auto w-full px-8 md:px-20">
-
           <div className="max-w-2xl">
-
             <motion.h1
               initial={{ opacity: 0, y: 25 }}
               animate={{ opacity: 1, y: 0 }}
@@ -89,47 +108,46 @@ export const LandingPage = () => {
               className="mt-10 flex flex-wrap gap-5"
             >
               <Button
+                onClick={handlePrimaryAction}
                 className={`
-                rounded-full
-                px-8
-                py-3
-                shadow-lg
-                transition-all
-                duration-700
-                ${isNight
+                  rounded-full
+                  px-8
+                  py-3
+                  shadow-lg
+                  transition-all
+                  duration-700
+                  ${isNight
                     ? 'bg-white/20 hover:bg-white/30 text-white border border-white/20'
                     : 'bg-[#A65D40] hover:bg-[#8E4B31] text-white'}
                 `}
               >
-                {copy.landing.buttons.primary}
+                {user ? "Continue Conversation" : copy.landing.buttons.primary}
               </Button>
 
               <Button
                 variant="ghost"
+                onClick={handleSecondaryAction}
                 className={`
-                rounded-full
-                border
-                backdrop-blur-md
-                px-8
-                py-3
-                transition-all
-                duration-700
-                ${isNight
+                  rounded-full
+                  border
+                  backdrop-blur-md
+                  px-8
+                  py-3
+                  transition-all
+                  duration-700
+                  ${isNight
                     ? 'border-white/30 text-white/90 bg-white/10 hover:bg-white/20'
                     : 'border-[#A65D40] text-[#5A3C2E] bg-white/15 hover:bg-white/25'}
                 `}
               >
-                {copy.landing.buttons.secondary}
+                {user ? "View Reflection" : copy.landing.buttons.secondary}
               </Button>
-
             </motion.div>
-
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 };
+
+export default LandingPage;
