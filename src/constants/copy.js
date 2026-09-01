@@ -12,7 +12,7 @@ export const copy = {
     wisdom: "Reflection",
     journal: "Journal",
     about: "Settings",
-    calmCorner: "🌿 Calm Corner",
+    calmCorner: "Calm Corner",
     signIn: "Sign In",
   },
   errors: {

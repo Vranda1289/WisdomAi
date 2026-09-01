@@ -60,14 +60,14 @@ export const LandingPage = () => {
         />
       </AnimatePresence>
 
-      {/* Warm Daylight Atmospheric Overlays */}
+      {/* Warm Daylight Atmospheric Overlays - Clean natural sunlight without washed-out white haze */}
       <div
-        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-gradient-to-r from-[#FCF8F2]/90 via-[#FCF8F2]/65 to-transparent pointer-events-none ${
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-gradient-to-r from-[#FCF8F2]/35 via-[#FCF8F2]/10 to-transparent pointer-events-none ${
           isNight ? 'opacity-0' : 'opacity-100'
         }`}
       />
       <div
-        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-radial-at-tl from-amber-200/20 via-transparent to-transparent pointer-events-none ${
+        className={`absolute inset-0 z-10 transition-opacity duration-1000 bg-radial-at-tl from-amber-200/15 via-transparent to-transparent pointer-events-none ${
           isNight ? 'opacity-0' : 'opacity-100'
         }`}
       />
