@@ -17,8 +17,10 @@ export default function BubblePop() {
     let animationId;
     let bubbles = [];
     let particles = [];
+    let isRunning = true;
 
     const resizeCanvas = () => {
+      if (!canvas || !canvas.parentElement) return;
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width || window.innerWidth;
       canvas.height = rect.height || 500;
@@ -32,14 +34,16 @@ export default function BubblePop() {
       }
 
       reset(initial = false) {
-        this.radius = Math.random() * 25 + 20; // 20 to 45 radius
+        this.radius = Math.random() * 26 + 18; // 18 to 44px
         this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
-        this.y = initial ? Math.random() * canvas.height : canvas.height + this.radius + Math.random() * 100;
-        this.speedY = Math.random() * 0.8 + 0.4; // Slow float speed
-        this.wobbleSpeed = Math.random() * 0.02 + 0.01;
-        this.wobbleAmount = Math.random() * 4 + 2;
+        this.y = initial 
+          ? Math.random() * canvas.height 
+          : canvas.height + this.radius + Math.random() * 80;
+        this.speedY = Math.random() * 0.75 + 0.35;
+        this.wobbleSpeed = Math.random() * 0.025 + 0.012;
+        this.wobbleAmount = Math.random() * 6 + 3;
         this.wobbleAngle = Math.random() * Math.PI * 2;
-        this.colorAlpha = Math.random() * 0.15 + 0.1;
+        this.hueShift = Math.random() * 40 - 20;
       }
 
       update() {
@@ -47,55 +51,70 @@ export default function BubblePop() {
         this.wobbleAngle += this.wobbleSpeed;
         this.currentX = this.x + Math.sin(this.wobbleAngle) * this.wobbleAmount;
 
-        if (this.y < -this.radius) {
-          this.reset();
+        if (this.y < -this.radius * 2) {
+          this.reset(false);
         }
       }
 
       draw() {
+        ctx.save();
         ctx.beginPath();
-        // Inner glassy gradient
+
+        // Outer glow gradient
         const grad = ctx.createRadialGradient(
-          this.currentX - this.radius * 0.3,
-          this.y - this.radius * 0.3,
-          this.radius * 0.1,
+          this.currentX - this.radius * 0.35,
+          this.y - this.radius * 0.35,
+          this.radius * 0.05,
           this.currentX,
           this.y,
           this.radius
         );
 
         if (isNight) {
-          grad.addColorStop(0, 'rgba(173, 216, 230, 0.4)');
-          grad.addColorStop(0.6, 'rgba(100, 149, 237, 0.1)');
-          grad.addColorStop(1, 'rgba(255, 255, 255, 0.25)');
+          grad.addColorStop(0, 'rgba(224, 242, 254, 0.45)');
+          grad.addColorStop(0.5, 'rgba(125, 211, 252, 0.2)');
+          grad.addColorStop(0.85, 'rgba(192, 132, 252, 0.15)');
+          grad.addColorStop(1, 'rgba(255, 255, 255, 0.35)');
         } else {
-          grad.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-          grad.addColorStop(0.6, 'rgba(230, 201, 168, 0.2)');
-          grad.addColorStop(1, 'rgba(79, 111, 82, 0.3)');
+          grad.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+          grad.addColorStop(0.45, 'rgba(254, 215, 170, 0.3)');
+          grad.addColorStop(0.8, 'rgba(167, 243, 208, 0.2)');
+          grad.addColorStop(1, 'rgba(166, 93, 64, 0.35)');
         }
 
         ctx.fillStyle = grad;
         ctx.arc(this.currentX, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Shiny reflection spot
+        // Primary glassy specular reflection
         ctx.beginPath();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.arc(
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.ellipse(
           this.currentX - this.radius * 0.35,
           this.y - this.radius * 0.35,
-          this.radius * 0.15,
+          this.radius * 0.22,
+          this.radius * 0.12,
+          -Math.PI / 4,
           0,
           Math.PI * 2
         );
         ctx.fill();
 
-        // Border stroke
+        // Secondary bottom soft rim light
         ctx.beginPath();
-        ctx.strokeStyle = isNight ? 'rgba(255, 255, 255, 0.3)' : 'rgba(79, 111, 82, 0.25)';
+        ctx.strokeStyle = isNight ? 'rgba(186, 230, 253, 0.4)' : 'rgba(234, 179, 8, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.arc(this.currentX, this.y, this.radius * 0.85, Math.PI * 0.3, Math.PI * 0.8);
+        ctx.stroke();
+
+        // Outer border stroke
+        ctx.beginPath();
+        ctx.strokeStyle = isNight ? 'rgba(255, 255, 255, 0.25)' : 'rgba(166, 93, 64, 0.25)';
         ctx.lineWidth = 1;
         ctx.arc(this.currentX, this.y, this.radius, 0, Math.PI * 2);
         ctx.stroke();
+
+        ctx.restore();
       }
     }
 
@@ -103,23 +122,24 @@ export default function BubblePop() {
       constructor(x, y, color) {
         this.x = x;
         this.y = y;
-        this.radius = Math.random() * 2 + 1;
+        this.radius = Math.random() * 2.5 + 1;
         this.angle = Math.random() * Math.PI * 2;
-        this.speed = Math.random() * 3 + 1;
+        this.speed = Math.random() * 3.5 + 1.2;
         this.alpha = 1;
-        this.decay = Math.random() * 0.03 + 0.02;
+        this.decay = Math.random() * 0.035 + 0.02;
         this.color = color;
       }
 
       update() {
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed;
+        this.speed *= 0.96;
         this.alpha -= this.decay;
       }
 
       draw() {
         ctx.save();
-        ctx.globalAlpha = this.alpha;
+        ctx.globalAlpha = Math.max(0, this.alpha);
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -128,51 +148,69 @@ export default function BubblePop() {
       }
     }
 
-    // Initialize bubbles
-    for (let i = 0; i < 15; i++) {
+    // Initialize 16 bubbles fresh on mount
+    for (let i = 0; i < 16; i++) {
       bubbles.push(new Bubble());
     }
 
     const animate = () => {
+      if (!isRunning) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Update & Draw Bubbles
-      bubbles.forEach(bubble => {
-        bubble.update();
-        bubble.draw();
+      // Update & draw bubbles
+      bubbles.forEach(b => {
+        b.update();
+        b.draw();
       });
 
-      // Update & Draw Pop Particles
-      particles.forEach((part, index) => {
-        part.update();
-        if (part.alpha <= 0) {
-          particles.splice(index, 1);
+      // Update & draw pop particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
         } else {
-          part.draw();
+          p.draw();
         }
-      });
+      }
 
       animationId = requestAnimationFrame(animate);
     };
     animate();
 
-    const handlePointerDown = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      if (clientX === undefined || clientY === undefined) return;
+    const triggerMessage = () => {
+      const msgs = [
+        "A little lighter...",
+        "Letting it float away...",
+        "Taking a quiet breath.",
+        "Nothing to rush here.",
+        "Just being present.",
+        "Soft and peaceful.",
+        "Your mind gets to rest."
+      ];
+      const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+      setMessage(randomMsg);
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+      messageTimeoutRef.current = setTimeout(() => {
+        setMessage('');
+      }, 3200);
+    };
 
+    const handlePointerHit = (clientX, clientY) => {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
       const clickX = clientX - rect.left;
       const clickY = clientY - rect.top;
 
       let hitIndex = -1;
       for (let i = bubbles.length - 1; i >= 0; i--) {
-        const bubble = bubbles[i];
-        const dx = clickX - bubble.currentX;
-        const dy = clickY - bubble.y;
+        const b = bubbles[i];
+        const dx = clickX - b.currentX;
+        const dy = clickY - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        if (dist <= bubble.radius) {
+        // Generous touch hit box for mobile
+        if (dist <= b.radius * 1.3) {
           hitIndex = i;
           break;
         }
@@ -180,20 +218,20 @@ export default function BubblePop() {
 
       if (hitIndex !== -1) {
         const popped = bubbles[hitIndex];
-        
-        // Spawn Pop Particles
-        const particleColor = isNight ? 'rgba(173, 216, 230, 0.8)' : 'rgba(79, 111, 82, 0.6)';
-        for (let p = 0; p < 12; p++) {
+
+        // Spawn pop particles
+        const particleColor = isNight ? 'rgba(186, 230, 253, 0.85)' : 'rgba(166, 93, 64, 0.7)';
+        for (let p = 0; p < 14; p++) {
           particles.push(new Particle(popped.currentX, popped.y, particleColor));
         }
 
-        // Reset bubble to start from bottom
-        popped.reset();
+        // Reset popped bubble to start fresh from bottom
+        popped.reset(false);
 
-        // Increment count & trigger random quiet validation messages
+        // Increment count
         setPoppedCount(prev => {
           const next = prev + 1;
-          if (next % 8 === 0) {
+          if (next % 6 === 0) {
             triggerMessage();
           }
           return next;
@@ -201,30 +239,28 @@ export default function BubblePop() {
       }
     };
 
-    canvas.addEventListener('mousedown', handlePointerDown);
-    canvas.addEventListener('touchstart', handlePointerDown, { passive: true });
-
-    const triggerMessage = () => {
-      const msgs = [
-        "A little lighter?",
-        "Letting it float away...",
-        "Taking a quiet breath.",
-        "Nothing to rush.",
-        "Just being here.",
-        "Soft and light."
-      ];
-      const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
-      setMessage(randomMsg);
-      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
-      messageTimeoutRef.current = setTimeout(() => {
-        setMessage('');
-      }, 3000);
+    const onMouseDown = (e) => {
+      handlePointerHit(e.clientX, e.clientY);
     };
 
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        for (let i = 0; i < e.touches.length; i++) {
+          handlePointerHit(e.touches[i].clientX, e.touches[i].clientY);
+        }
+      }
+    };
+
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+
     return () => {
+      isRunning = false;
       window.removeEventListener('resize', resizeCanvas);
-      canvas.removeEventListener('mousedown', handlePointerDown);
-      canvas.removeEventListener('touchstart', handlePointerDown);
+      if (canvas) {
+        canvas.removeEventListener('mousedown', onMouseDown);
+        canvas.removeEventListener('touchstart', onTouchStart);
+      }
       cancelAnimationFrame(animationId);
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
     };
@@ -232,12 +268,18 @@ export default function BubblePop() {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-between relative overflow-hidden select-none">
+      {/* Top Counter Bar */}
       <div className="text-center pt-4 z-10">
-        <p className={`text-xs uppercase tracking-widest ${isNight ? 'text-white/40' : 'text-[#3D2A1D]/50'} font-bold`}>
+        <span className={`text-[11.5px] uppercase tracking-widest font-semibold px-4 py-1.5 rounded-full border backdrop-blur-md transition-colors ${
+          isNight 
+            ? 'bg-white/[0.04] border-white/10 text-sky-200/80' 
+            : 'bg-white/80 border-[#2E1C12]/10 text-[#8E4B31]'
+        }`}>
           Bubbles Popped: {poppedCount}
-        </p>
+        </span>
       </div>
 
+      {/* Interactive Canvas */}
       <div className="absolute inset-0 w-full h-full cursor-pointer z-0">
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>

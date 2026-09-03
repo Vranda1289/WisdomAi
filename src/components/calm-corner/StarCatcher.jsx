@@ -13,11 +13,16 @@ export default function StarCatcher() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let animationId;
+    let isRunning = true;
+
     let stars = [];
-    let caughtStars = []; // Caught stars saved to form constellations
+    let caughtStars = []; // Caught stars forming persistent constellation hubs
     let sparkles = [];
+    let shootingStar = null;
+    let shootingStarTimer = 0;
 
     const resizeCanvas = () => {
+      if (!canvas || !canvas.parentElement) return;
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width || window.innerWidth;
       canvas.height = rect.height || 500;
@@ -27,52 +32,94 @@ export default function StarCatcher() {
 
     class Star {
       constructor() {
-        this.reset();
+        this.reset(true);
       }
 
-      reset() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * (canvas.height * 0.7); // Top 70% of sky
-        this.radius = Math.random() * 3.5 + 2.5; // Catchable star radius
-        this.pulseSpeed = Math.random() * 0.05 + 0.02;
-        this.pulseAngle = Math.random() * Math.PI;
-        this.alpha = 0;
-        this.targetAlpha = Math.random() * 0.5 + 0.4;
-        this.state = 'fadein'; // 'fadein', 'active', 'caught'
+      reset(initial = false) {
+        this.x = Math.random() * (canvas.width - 40) + 20;
+        this.y = initial 
+          ? Math.random() * (canvas.height * 0.7) + 20 
+          : -15;
+        this.baseRadius = Math.random() * 3 + 2.5; // 2.5 to 5.5
+        this.speedY = Math.random() * 0.35 + 0.15; // Gentle slow float down
+        this.speedX = (Math.random() - 0.5) * 0.2;
+        this.pulseSpeed = Math.random() * 0.04 + 0.02;
+        this.pulseAngle = Math.random() * Math.PI * 2;
+        this.alpha = initial ? Math.random() * 0.5 + 0.4 : 0;
+        this.targetAlpha = Math.random() * 0.4 + 0.6;
+        this.trail = [];
       }
 
       update() {
-        if (this.state === 'fadein') {
-          this.alpha += 0.01;
-          if (this.alpha >= this.targetAlpha) {
-            this.alpha = this.targetAlpha;
-            this.state = 'active';
-          }
+        if (this.alpha < this.targetAlpha) {
+          this.alpha += 0.015;
         }
-        
+
+        this.y += this.speedY;
+        this.x += this.speedX;
         this.pulseAngle += this.pulseSpeed;
-        this.pulseRadius = this.radius + Math.sin(this.pulseAngle) * 1.2;
+        this.currentRadius = this.baseRadius + Math.sin(this.pulseAngle) * 1;
+
+        // Add to gentle trail
+        if (Math.random() > 0.4) {
+          this.trail.push({ x: this.x, y: this.y, alpha: 0.5, radius: this.currentRadius * 0.4 });
+          if (this.trail.length > 6) this.trail.shift();
+        }
+
+        // Decay trail
+        this.trail.forEach(t => { t.alpha *= 0.88; });
+
+        if (this.y > canvas.height + 20) {
+          this.reset(false);
+        }
       }
 
       draw() {
         ctx.save();
+
+        // Draw trail
+        this.trail.forEach(t => {
+          ctx.beginPath();
+          ctx.globalAlpha = Math.max(0, t.alpha * this.alpha * 0.6);
+          ctx.fillStyle = isNight ? '#E0F2FE' : '#FEF3C7';
+          ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
         ctx.globalAlpha = this.alpha;
-        
-        // Soft outer glow
-        const glow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.pulseRadius * 4);
-        glow.addColorStop(0, 'rgba(255, 250, 205, 0.7)');
-        glow.addColorStop(0.3, 'rgba(255, 250, 205, 0.2)');
-        glow.addColorStop(1, 'rgba(255, 250, 205, 0)');
+
+        // Outer ambient glow
+        const glowRadius = this.currentRadius * 4;
+        const glow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowRadius);
+        if (isNight) {
+          glow.addColorStop(0, 'rgba(186, 230, 253, 0.7)');
+          glow.addColorStop(0.4, 'rgba(125, 211, 252, 0.25)');
+          glow.addColorStop(1, 'rgba(125, 211, 252, 0)');
+        } else {
+          glow.addColorStop(0, 'rgba(254, 240, 138, 0.8)');
+          glow.addColorStop(0.4, 'rgba(253, 224, 71, 0.25)');
+          glow.addColorStop(1, 'rgba(253, 224, 71, 0)');
+        }
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.pulseRadius * 4, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, glowRadius, 0, Math.PI * 2);
         ctx.fill();
 
         // Core star
-        ctx.fillStyle = '#FFFDE8';
+        ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.pulseRadius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Soft sparkle cross
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.x - this.currentRadius * 2, this.y);
+        ctx.lineTo(this.x + this.currentRadius * 2, this.y);
+        ctx.moveTo(this.x, this.y - this.currentRadius * 2);
+        ctx.lineTo(this.x, this.y + this.currentRadius * 2);
+        ctx.stroke();
 
         ctx.restore();
       }
@@ -82,84 +129,119 @@ export default function StarCatcher() {
       constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.vx = Math.random() * 2 - 1;
-        this.vy = Math.random() * 2 - 1;
+        this.vx = (Math.random() - 0.5) * 3;
+        this.vy = (Math.random() - 0.5) * 3;
         this.alpha = 1;
         this.decay = Math.random() * 0.03 + 0.02;
+        this.radius = Math.random() * 2 + 1;
       }
 
       update() {
         this.x += this.vx;
         this.y += this.vy;
+        this.vx *= 0.96;
+        this.vy *= 0.96;
         this.alpha -= this.decay;
       }
 
       draw() {
         ctx.save();
-        ctx.globalAlpha = this.alpha;
-        ctx.fillStyle = '#FFFDF0';
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = isNight ? '#BAE6FD' : '#FEF3C7';
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
     }
 
     // Populate active catchable stars
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 9; i++) {
       stars.push(new Star());
     }
 
-    // Background passive tiny stars
-    const backgroundStars = [];
-    for (let i = 0; i < 40; i++) {
-      backgroundStars.push({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * 500,
-        radius: Math.random() * 1 + 0.5,
-        alpha: Math.random() * 0.5 + 0.1
-      });
-    }
+    // Populate background static stars
+    const backgroundStars = Array.from({ length: 45 }, () => ({
+      x: Math.random() * (canvas.width || 800),
+      y: Math.random() * (canvas.height || 500),
+      radius: Math.random() * 1.2 + 0.6,
+      alpha: Math.random() * 0.4 + 0.15,
+      twinkleSpeed: Math.random() * 0.03 + 0.01
+    }));
 
     const animate = () => {
-      // Clear
+      if (!isRunning) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Deep sky gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
       if (isNight) {
-        skyGrad.addColorStop(0, '#060913');
-        skyGrad.addColorStop(0.5, '#0B1121');
-        skyGrad.addColorStop(1, '#151A2E');
+        skyGrad.addColorStop(0, '#050814');
+        skyGrad.addColorStop(0.5, '#0B1120');
+        skyGrad.addColorStop(1, '#131A2E');
       } else {
-        skyGrad.addColorStop(0, '#101F30');
-        skyGrad.addColorStop(0.6, '#182C40');
-        skyGrad.addColorStop(1, '#28415C');
+        skyGrad.addColorStop(0, '#0F172A');
+        skyGrad.addColorStop(0.5, '#1E293B');
+        skyGrad.addColorStop(1, '#2E384D');
       }
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw passive background stars
+      // Draw background twinkling stars
       backgroundStars.forEach(bs => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${bs.alpha})`;
+        bs.alpha += Math.sin(Date.now() * 0.001 * bs.twinkleSpeed) * 0.01;
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, Math.min(0.6, bs.alpha))})`;
         ctx.beginPath();
         ctx.arc(bs.x, bs.y, bs.radius, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Draw Constellation Lines between caught stars
+      // Handle occasional shooting star
+      shootingStarTimer++;
+      if (!shootingStar && shootingStarTimer > 280 && Math.random() < 0.03) {
+        shootingStar = {
+          x: Math.random() * (canvas.width * 0.6),
+          y: Math.random() * (canvas.height * 0.3),
+          vx: Math.random() * 6 + 6,
+          vy: Math.random() * 3 + 3,
+          length: Math.random() * 50 + 40,
+          alpha: 1
+        };
+        shootingStarTimer = 0;
+      }
+
+      if (shootingStar) {
+        shootingStar.x += shootingStar.vx;
+        shootingStar.y += shootingStar.vy;
+        shootingStar.alpha -= 0.025;
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0, shootingStar.alpha)})`;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(shootingStar.x, shootingStar.y);
+        ctx.lineTo(shootingStar.x - shootingStar.vx * 4, shootingStar.y - shootingStar.vy * 4);
+        ctx.stroke();
+        ctx.restore();
+
+        if (shootingStar.alpha <= 0 || shootingStar.x > canvas.width) {
+          shootingStar = null;
+        }
+      }
+
+      // Draw Constellation Lines between persistent caught stars
       if (caughtStars.length > 1) {
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 250, 205, 0.15)';
+        ctx.strokeStyle = isNight ? 'rgba(186, 230, 253, 0.22)' : 'rgba(254, 240, 138, 0.25)';
         ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
         ctx.beginPath();
         for (let i = 0; i < caughtStars.length; i++) {
           const s1 = caughtStars[i];
-          // Connect to nearby caught stars
           for (let j = i + 1; j < caughtStars.length; j++) {
             const s2 = caughtStars[j];
-            const dist = Math.sqrt((s1.x - s2.x) ** 2 + (s1.y - s2.y) ** 2);
-            if (dist < 180) {
+            const dist = Math.hypot(s1.x - s2.x, s1.y - s2.y);
+            if (dist < 170) {
               ctx.moveTo(s1.x, s1.y);
               ctx.lineTo(s2.x, s2.y);
             }
@@ -169,12 +251,20 @@ export default function StarCatcher() {
         ctx.restore();
       }
 
-      // Draw Caught Stars (dim static glow constellation hubs)
+      // Draw Persistent Caught Constellation Nodes
       caughtStars.forEach(cs => {
-        ctx.fillStyle = 'rgba(255, 253, 220, 0.4)';
+        ctx.save();
+        // Soft aura
+        ctx.fillStyle = isNight ? 'rgba(186, 230, 253, 0.5)' : 'rgba(254, 240, 138, 0.55)';
+        ctx.beginPath();
+        ctx.arc(cs.x, cs.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
         ctx.arc(cs.x, cs.y, 2, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       });
 
       // Update & Draw Active Stars
@@ -183,37 +273,33 @@ export default function StarCatcher() {
         star.draw();
       });
 
-      // Particles
-      sparkles.forEach((sp, idx) => {
+      // Update & Draw Sparkles
+      for (let i = sparkles.length - 1; i >= 0; i--) {
+        const sp = sparkles[i];
         sp.update();
         if (sp.alpha <= 0) {
-          sparkles.splice(idx, 1);
+          sparkles.splice(i, 1);
         } else {
           sp.draw();
         }
-      });
+      }
 
       animationId = requestAnimationFrame(animate);
     };
     animate();
 
-    const handlePointerDown = (e) => {
+    const handlePointerCatch = (clientX, clientY) => {
+      if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      if (clientX === undefined || clientY === undefined) return;
-
       const clickX = clientX - rect.left;
       const clickY = clientY - rect.top;
 
       let hitIndex = -1;
       for (let i = stars.length - 1; i >= 0; i--) {
         const star = stars[i];
-        const dx = clickX - star.x;
-        const dy = clickY - star.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        // Slightly larger hit box on touch screens
-        if (dist <= star.radius * 2.5) {
+        const dist = Math.hypot(clickX - star.x, clickY - star.y);
+        // Generous touch hit detection
+        if (dist <= star.currentRadius * 3.5 || dist <= 24) {
           hitIndex = i;
           break;
         }
@@ -221,31 +307,45 @@ export default function StarCatcher() {
 
       if (hitIndex !== -1) {
         const caught = stars[hitIndex];
-        
-        // Spawn Sparkles
-        for (let s = 0; s < 12; s++) {
+
+        // Burst sparkles
+        for (let s = 0; s < 14; s++) {
           sparkles.push(new Sparkle(caught.x, caught.y));
         }
 
-        // Add to constellation hubs
+        // Add to constellation node history
         caughtStars.push({ x: caught.x, y: caught.y });
-        // Keep constellation buffer clean (max 30 stars)
-        if (caughtStars.length > 30) caughtStars.shift();
+        if (caughtStars.length > 35) caughtStars.shift();
 
-        // Reset the hit star to a new place
-        caught.reset();
+        // Reset star to top
+        caught.reset(false);
 
         setStarsCaught(prev => prev + 1);
       }
     };
 
-    canvas.addEventListener('mousedown', handlePointerDown);
-    canvas.addEventListener('touchstart', handlePointerDown, { passive: true });
+    const onMouseDown = (e) => {
+      handlePointerCatch(e.clientX, e.clientY);
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length > 0) {
+        for (let i = 0; i < e.touches.length; i++) {
+          handlePointerCatch(e.touches[i].clientX, e.touches[i].clientY);
+        }
+      }
+    };
+
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
 
     return () => {
+      isRunning = false;
       window.removeEventListener('resize', resizeCanvas);
-      canvas.removeEventListener('mousedown', handlePointerDown);
-      canvas.removeEventListener('touchstart', handlePointerDown);
+      if (canvas) {
+        canvas.removeEventListener('mousedown', onMouseDown);
+        canvas.removeEventListener('touchstart', onTouchStart);
+      }
       cancelAnimationFrame(animationId);
     };
   }, [isNight]);
@@ -253,20 +353,22 @@ export default function StarCatcher() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-between relative overflow-hidden select-none">
       
-      {/* Caught Stars counter overlay */}
+      {/* Top Luminous Counter Bar */}
       <div className="text-center pt-4 z-10">
-        <p className="text-xs uppercase tracking-widest text-amber-200/60 font-bold">
-          Constellation Nodes: {starsCaught}
-        </p>
+        <span className="text-[11.5px] uppercase tracking-widest font-semibold px-4 py-1.5 rounded-full border bg-white/[0.06] border-white/10 text-amber-200/90 backdrop-blur-md">
+          ✨ Moments of Light: {starsCaught}
+        </span>
       </div>
 
+      {/* Deep Night Canvas */}
       <div className="absolute inset-0 w-full h-full cursor-pointer z-0">
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
+      {/* Bottom Quiet Prompt */}
       <div className="h-14 pb-5 text-center z-10 pointer-events-none">
-        <p className="text-[12px] italic text-amber-100/40">
-          Gather falling stars to draw constellations across the night sky...
+        <p className="text-[12px] italic text-amber-100/50">
+          Touch falling stars to weave constellations across the quiet sky...
         </p>
       </div>
     </div>

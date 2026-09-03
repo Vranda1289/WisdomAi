@@ -1,243 +1,539 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { themes } from '../../constants/themes';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Grid, RotateCcw } from 'lucide-react';
 
-const PUZZLE_IMAGES = [
+/* =========================================================================
+   PUZZLE CATALOG
+   ========================================================================= */
+
+const PUZZLE_TYPES = [
   {
-    name: 'Misty Mountains',
-    color1: '#4A5568',
-    color2: '#A0AEC0',
-    svg: (
-      <svg className="w-full h-full" viewBox="0 0 300 300">
-        <defs>
-          <linearGradient id="grad-mountains" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1A202C" />
-            <stop offset="100%" stopColor="#718096" />
-          </linearGradient>
-        </defs>
-        <rect width="300" height="300" fill="url(#grad-mountains)" />
-        <path d="M 0,300 L 100,120 L 200,300 Z" fill="#2D3748" opacity="0.8" />
-        <path d="M 100,300 L 220,150 L 300,300 Z" fill="#4A5568" opacity="0.6" />
-        <circle cx="220" cy="80" r="25" fill="#E2E8F0" opacity="0.15" />
-        <path d="M 0,250 Q 150,220 300,250 L 300,300 L 0,300 Z" fill="#1A202C" opacity="0.9" />
-      </svg>
+    id: 'numbers',
+    name: '🔢 Number Sequence',
+    category: 'Gentle Numbers',
+    desc: 'Slide and arrange numbers in peaceful order',
+    type: 'sliding',
+    gridSize: 3,
+    renderTile: (val, isNight) => (
+      <div className={`w-full h-full flex items-center justify-center font-heading text-2xl font-bold ${
+        isNight ? 'text-sky-200' : 'text-[#5A3C2E]'
+      }`}>
+        {val}
+      </div>
     )
   },
   {
-    name: 'Forest Stream',
-    color1: '#2E3B2E',
-    color2: '#8EB58E',
-    svg: (
-      <svg className="w-full h-full" viewBox="0 0 300 300">
-        <defs>
-          <linearGradient id="grad-forest" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2D3748" />
-            <stop offset="100%" stopColor="#2F855A" />
-          </linearGradient>
-        </defs>
-        <rect width="300" height="300" fill="url(#grad-forest)" />
-        {/* Soft leaf shapes */}
-        <path d="M 50,50 Q 100,20 150,50 Q 100,80 50,50 Z" fill="#48BB78" opacity="0.3" />
-        <path d="M 150,150 Q 200,120 250,150 Q 200,180 150,150 Z" fill="#38A169" opacity="0.4" />
-        <path d="M 20,200 Q 120,180 220,220 L 180,300 L 0,300 Z" fill="#276749" opacity="0.7" />
-        {/* Stream curve */}
-        <path d="M 120,300 C 140,250 160,240 180,210 Q 190,190 200,120" stroke="#63B3ED" strokeWidth="6" fill="none" opacity="0.4" />
-      </svg>
-    )
+    id: 'mountains',
+    name: '🌿 Misty Mountains',
+    category: 'Nature Sanctuary',
+    desc: 'Assemble rolling peaks veiled in morning mist',
+    type: 'tile_swap',
+    gridSize: 3,
+    tiles: [
+      { id: 0, label: '☁️ High Peak', color: '#334155' },
+      { id: 1, label: '🏔️ Morning Mist', color: '#475569' },
+      { id: 2, label: '🦅 Open Sky', color: '#64748B' },
+      { id: 3, label: '🌲 Pine Slope', color: '#334D41' },
+      { id: 4, label: '🌫️ Cloud Layer', color: '#4B5563' },
+      { id: 5, label: '⛰️ Valley Edge', color: '#374151' },
+      { id: 6, label: '🍃 Forest Base', color: '#273C2C' },
+      { id: 7, label: '🌊 Mountain River', color: '#2A4365' },
+      { id: 8, label: '🌾 Quiet Meadow', color: '#3D5A45' }
+    ]
   },
   {
-    name: 'Sunset Stillness',
-    color1: '#5F375E',
-    color2: '#E28F83',
-    svg: (
-      <svg className="w-full h-full" viewBox="0 0 300 300">
-        <defs>
-          <linearGradient id="grad-sunset" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#4A154B" />
-            <stop offset="60%" stopColor="#C13584" />
-            <stop offset="100%" stopColor="#FCAF45" />
-          </linearGradient>
-        </defs>
-        <rect width="300" height="300" fill="url(#grad-sunset)" />
-        <circle cx="150" cy="160" r="40" fill="#FFF" opacity="0.8" />
-        <path d="M 0,220 Q 150,250 300,220 L 300,300 L 0,300 Z" fill="#2D0B2E" opacity="0.8" />
-        <path d="M 0,260 Q 150,280 300,260 L 300,300 L 0,300 Z" fill="#1D031F" />
-      </svg>
-    )
+    id: 'faces',
+    name: '😊 Sleepy Moon Spirit',
+    category: 'Mindful Faces',
+    desc: 'Assemble a serene sleeping celestial portrait',
+    type: 'tile_swap',
+    gridSize: 3,
+    tiles: [
+      { id: 0, label: '⭐ Starlight', color: '#2E1065' },
+      { id: 1, label: '🌙 Moon Crown', color: '#3B0764' },
+      { id: 2, label: '✨ Night Glow', color: '#4C1D95' },
+      { id: 3, label: '😌 Closed Eye', color: '#581C87' },
+      { id: 4, label: '💫 Peaceful Mind', color: '#6B21A8' },
+      { id: 5, label: '🌸 Celestial Aura', color: '#7E22CE' },
+      { id: 6, label: '✨ Soft Smile', color: '#581C87' },
+      { id: 7, label: '☁️ Dream Cloud', color: '#3B0764' },
+      { id: 8, label: '🌌 Deep Cosmos', color: '#1E1B4B' }
+    ]
+  },
+  {
+    id: 'mandala',
+    name: '🌸 Sacred Mandala',
+    category: 'Sacred Patterns',
+    desc: 'Reconstruct a harmonious geometric floral mandala',
+    type: 'tile_swap',
+    gridSize: 3,
+    tiles: [
+      { id: 0, label: '💠 Top Petal', color: '#7C2D12' },
+      { id: 1, label: '✨ Center Crown', color: '#9A3412' },
+      { id: 2, label: '💠 Right Petal', color: '#C2410C' },
+      { id: 3, label: '🌿 Inner Ring', color: '#991B1B' },
+      { id: 4, label: '🪷 Sacred Lotus', color: '#B91C1C' },
+      { id: 5, label: '🌿 Outer Ring', color: '#991B1B' },
+      { id: 6, label: '💠 Lower Left', color: '#7C2D12' },
+      { id: 7, label: '✨ Base Petal', color: '#9A3412' },
+      { id: 8, label: '💠 Lower Right', color: '#C2410C' }
+    ]
+  },
+  {
+    id: 'fauna',
+    name: '🦋 Forest Butterfly',
+    category: 'Gentle Wildlife',
+    desc: 'Pieces of wings and wild forest flora',
+    type: 'tile_swap',
+    gridSize: 3,
+    tiles: [
+      { id: 0, label: '🍃 Forest Canopy', color: '#064E3B' },
+      { id: 1, label: '🦋 Wing Apex', color: '#065F46' },
+      { id: 2, label: '🍃 Sunlit Branch', color: '#047857' },
+      { id: 3, label: '🦋 Left Wing', color: '#0F766E' },
+      { id: 4, label: '✨ Butterfly Heart', color: '#115E59' },
+      { id: 5, label: '🦋 Right Wing', color: '#134E4A' },
+      { id: 6, label: '🌸 Forest Moss', color: '#064E3B' },
+      { id: 7, label: '🦋 Wing Trail', color: '#065F46' },
+      { id: 8, label: '🌸 Wildflower', color: '#047857' }
+    ]
+  },
+  {
+    id: 'memory',
+    name: '🧠 Sanctuary Pairs',
+    category: 'Mindful Memory',
+    desc: 'Turn and pair gentle sanctuary symbols at your own pace',
+    type: 'memory',
+    pairs: ['🌿', '🌙', '🪷', '⭐', '🌊', '🍃']
   }
 ];
 
 export default function PeacefulPuzzle() {
   const { theme } = useTheme();
   const isNight = theme === themes.NIGHT_REFLECTION;
-  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
-  const [pieces, setPieces] = useState([]); // Array of { id: number, currentPos: number }
-  const [selectedPieceIdx, setSelectedPieceIdx] = useState(null);
+
+  const [currentView, setCurrentView] = useState('gallery'); // 'gallery' | 'play'
+  const [selectedPuzzle, setSelectedPuzzle] = useState(PUZZLE_TYPES[0]);
+  const [difficulty, setDifficulty] = useState('gentle'); // 'gentle' | 'mindful' | 'challenge'
+  
+  // Game states
+  const [tiles, setTiles] = useState([]);
+  const [selectedTileIdx, setSelectedTileIdx] = useState(null);
+  const [emptyIndex, setEmptyIndex] = useState(8); // for sliding
+  const [moves, setMoves] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  useEffect(() => {
-    startPuzzle();
-  }, [selectedImageIdx]);
+  // Memory game state
+  const [memoryCards, setMemoryCards] = useState([]);
+  const [flippedCards, setFlippedCards] = useState([]);
+  const [matchedCards, setMatchedCards] = useState([]);
 
-  const startPuzzle = () => {
-    // Generate 3x3 puzzle pieces (indices 0..8)
-    let initialPieces = Array.from({ length: 9 }, (_, idx) => ({
-      id: idx,
-      currentPos: idx
-    }));
+  // Initialize selected puzzle
+  const startPuzzle = (puzzle) => {
+    setSelectedPuzzle(puzzle);
+    setIsCompleted(false);
+    setSelectedTileIdx(null);
+    setMoves(0);
 
-    // Shuffle pieces randomly (ensure they aren't solved initially)
-    let shuffled = [...initialPieces];
-    let isSolved = true;
-    while (isSolved) {
-      shuffled.sort(() => Math.random() - 0.5);
-      // Double check if it is accidentally solved
-      isSolved = shuffled.every((p, idx) => p.id === idx);
+    if (puzzle.type === 'sliding') {
+      // 1 to 8 + empty (null)
+      const initial = [1, 2, 3, 4, 5, 6, 7, 8, null];
+      // Gentle shuffle
+      const shuffleCount = difficulty === 'gentle' ? 12 : (difficulty === 'mindful' ? 24 : 40);
+      let currEmpty = 8;
+      let currTiles = [...initial];
+
+      for (let s = 0; s < shuffleCount; s++) {
+        const neighbors = getSlidingNeighbors(currEmpty);
+        const randomNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+        // swap
+        currTiles[currEmpty] = currTiles[randomNeighbor];
+        currTiles[randomNeighbor] = null;
+        currEmpty = randomNeighbor;
+      }
+
+      setTiles(currTiles);
+      setEmptyIndex(currEmpty);
+    } else if (puzzle.type === 'tile_swap') {
+      const initial = puzzle.tiles.map((t, idx) => ({ ...t, correctIdx: idx }));
+      // Shuffle tiles
+      const shuffled = [...initial].sort(() => Math.random() - 0.5);
+      setTiles(shuffled);
+    } else if (puzzle.type === 'memory') {
+      const symbols = puzzle.pairs;
+      const deck = [...symbols, ...symbols]
+        .sort(() => Math.random() - 0.5)
+        .map((sym, idx) => ({ id: idx, sym, matched: false }));
+      setMemoryCards(deck);
+      setFlippedCards([]);
+      setMatchedCards([]);
     }
 
-    // Map shuffled elements back into positions
-    const finalState = shuffled.map((p, idx) => ({
-      ...p,
-      currentPos: idx
-    }));
-
-    setPieces(finalState);
-    setSelectedPieceIdx(null);
-    setIsCompleted(false);
+    setCurrentView('play');
   };
 
-  const handlePieceClick = (clickedIdx) => {
+  const getSlidingNeighbors = (idx) => {
+    const row = Math.floor(idx / 3);
+    const col = idx % 3;
+    const neighbors = [];
+    if (row > 0) neighbors.push(idx - 3); // top
+    if (row < 2) neighbors.push(idx + 3); // bottom
+    if (col > 0) neighbors.push(idx - 1); // left
+    if (col < 2) neighbors.push(idx + 1); // right
+    return neighbors;
+  };
+
+  const handleSlidingClick = (idx) => {
     if (isCompleted) return;
+    const neighbors = getSlidingNeighbors(emptyIndex);
+    if (neighbors.includes(idx)) {
+      const nextTiles = [...tiles];
+      nextTiles[emptyIndex] = nextTiles[idx];
+      nextTiles[idx] = null;
+      setTiles(nextTiles);
+      setEmptyIndex(idx);
+      setMoves(prev => prev + 1);
 
-    if (selectedPieceIdx === null) {
-      setSelectedPieceIdx(clickedIdx);
+      // Check win
+      const win = nextTiles.slice(0, 8).every((v, i) => v === i + 1) && nextTiles[8] === null;
+      if (win) setIsCompleted(true);
+    }
+  };
+
+  const handleTileSwapClick = (idx) => {
+    if (isCompleted) return;
+    if (selectedTileIdx === null) {
+      setSelectedTileIdx(idx);
+    } else if (selectedTileIdx === idx) {
+      setSelectedTileIdx(null);
     } else {
-      // Swap positions
-      const updated = [...pieces];
-      const tempId = updated[selectedPieceIdx].id;
-      
-      updated[selectedPieceIdx].id = updated[clickedIdx].id;
-      updated[clickedIdx].id = tempId;
+      // Swap tiles
+      const nextTiles = [...tiles];
+      const temp = nextTiles[selectedTileIdx];
+      nextTiles[selectedTileIdx] = nextTiles[idx];
+      nextTiles[idx] = temp;
+      setTiles(nextTiles);
+      setSelectedTileIdx(null);
+      setMoves(prev => prev + 1);
 
-      setPieces(updated);
-      setSelectedPieceIdx(null);
+      // Check win
+      const win = nextTiles.every((t, i) => t.correctIdx === i);
+      if (win) setIsCompleted(true);
+    }
+  };
 
-      // Check if solved
-      const solved = updated.every((p, idx) => p.id === idx);
-      if (solved) {
-        setIsCompleted(true);
+  const handleMemoryCardClick = (idx) => {
+    if (isCompleted || flippedCards.length === 2 || flippedCards.includes(idx) || matchedCards.includes(idx)) return;
+
+    const nextFlipped = [...flippedCards, idx];
+    setFlippedCards(nextFlipped);
+
+    if (nextFlipped.length === 2) {
+      setMoves(prev => prev + 1);
+      const card1 = memoryCards[nextFlipped[0]];
+      const card2 = memoryCards[nextFlipped[1]];
+
+      if (card1.sym === card2.sym) {
+        const nextMatched = [...matchedCards, nextFlipped[0], nextFlipped[1]];
+        setMatchedCards(nextMatched);
+        setFlippedCards([]);
+        if (nextMatched.length === memoryCards.length) {
+          setIsCompleted(true);
+        }
+      } else {
+        setTimeout(() => {
+          setFlippedCards([]);
+        }, 1000);
       }
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-between relative overflow-hidden select-none p-4">
+    <div className="w-full h-full flex flex-col items-center justify-between relative overflow-hidden select-none">
       
-      {/* Selector and Play Controls top */}
-      <div className="w-full max-w-md flex justify-between items-center gap-3 z-10 mb-2">
-        <select
-          value={selectedImageIdx}
-          onChange={(e) => setSelectedImageIdx(Number(e.target.value))}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold outline-none border transition-all ${
-            isNight
-              ? 'bg-slate-900 border-white/10 text-white'
-              : 'bg-white border-[#2E1C12]/10 text-[#3D2A1D]'
-          }`}
+      {/* VIEW 1: PUZZLE LIBRARY GALLERY */}
+      {currentView === 'gallery' && (
+        <motion.div
+          key="gallery"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          className="w-full h-full overflow-y-auto no-scrollbar flex flex-col items-center justify-start p-6 space-y-6"
         >
-          {PUZZLE_IMAGES.map((img, idx) => (
-            <option key={idx} value={idx}>
-              🌅 {img.name}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={startPuzzle}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-            isNight ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-white/70 border-[#2E1C12]/10 text-[#3D2A1D] hover:bg-[#F5F0E6]'
-          }`}
-        >
-          🔄 Shuffle
-        </button>
-      </div>
-
-      {/* Grid Canvas area */}
-      <div className="w-full max-w-[320px] aspect-square relative z-0 flex items-center justify-center">
-        {isCompleted ? (
-          <div className="text-center p-6 flex flex-col items-center gap-4 animate-fade-in">
-            {/* Fully completed graphic */}
-            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-emerald-400/50 shadow-lg">
-              {PUZZLE_IMAGES[selectedImageIdx].svg}
-            </div>
-            <div>
-              <h4 className={`text-md font-heading font-semibold mb-1 ${isNight ? 'text-white' : 'text-[#3D2A1D]'}`}>
-                Quiet Accomplishment
-              </h4>
-              <p className={`text-[12.5px] leading-relaxed px-4 ${isNight ? 'text-white/60' : 'text-[#3D2A1D]/70'}`}>
-                "You gave your mind somewhere quiet to rest."
-              </p>
-            </div>
-            <button
-              onClick={startPuzzle}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${
-                isNight
-                  ? 'bg-white text-black hover:bg-slate-200'
-                  : 'bg-[#4F6F52] hover:bg-[#4F6F52]/90 text-white'
-              }`}
-            >
-              Play Again
-            </button>
+          <div className="text-center max-w-lg space-y-2 mt-2">
+            <h2 className="text-2xl md:text-3xl font-heading font-medium tracking-tight">
+              Peaceful Puzzles
+            </h2>
+            <p className={`text-xs md:text-sm font-light ${isNight ? 'text-white/60' : 'text-[#3D2A1D]/75'}`}>
+              What would you like to solve? Gentle, unhurried puzzles with no pressure or timers.
+            </p>
           </div>
-        ) : (
-          <div 
-            className={`grid grid-cols-3 grid-rows-3 gap-1 p-1 w-full h-full rounded-2xl border transition-colors ${
-              isNight ? 'bg-slate-900/50 border-white/5 shadow-glass' : 'bg-white/80 border-[#2E1C12]/10 shadow-soft'
-            }`}
-          >
-            {pieces.map((piece, currentIdx) => {
-              // Calculate original background position for coordinates
-              const originalCol = piece.id % 3;
-              const originalRow = Math.floor(piece.id / 3);
-              const xOffset = -originalCol * 100 + 'px';
-              const yOffset = -originalRow * 100 + 'px';
 
-              return (
-                <div
-                  key={currentIdx}
-                  onClick={() => handlePieceClick(currentIdx)}
-                  className={`relative overflow-hidden rounded-lg cursor-pointer transition-all active:scale-98 ${
-                    selectedPieceIdx === currentIdx
-                      ? (isNight ? 'ring-2 ring-white border-transparent' : 'ring-2 ring-[#4F6F52] border-transparent')
-                      : (isNight ? 'border border-white/5 hover:border-white/20' : 'border border-black/5 hover:border-black/10')
-                  }`}
-                >
-                  {/* Inside SVG viewport clipping to replicate background position */}
-                  <div
-                    className="absolute inset-0 w-[300px] h-[300px]"
-                    style={{
-                      transform: `translate(${xOffset}, ${yOffset})`,
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    {PUZZLE_IMAGES[selectedImageIdx].svg}
-                  </div>
+          {/* Difficulty Tiers */}
+          <div className="flex items-center gap-2 p-1 rounded-2xl border backdrop-blur-md">
+            {[
+              { id: 'gentle', label: '🌱 Gentle' },
+              { id: 'mindful', label: '🌿 Mindful' },
+              { id: 'challenge', label: '✨ Focused' }
+            ].map(d => (
+              <button
+                key={d.id}
+                onClick={() => setDifficulty(d.id)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  difficulty === d.id
+                    ? (isNight ? 'bg-white text-slate-900 shadow-sm' : 'bg-[#4F6F52] text-white shadow-sm')
+                    : (isNight ? 'text-white/60 hover:text-white' : 'text-[#3D2A1D]/60 hover:text-[#3D2A1D]')
+                }`}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
 
-                  {/* Gentle grid marker helper */}
-                  <span className="absolute bottom-1 right-1 text-[8px] opacity-15 text-white bg-black/40 px-1 rounded">
-                    {piece.id + 1}
+          {/* Puzzle Cards Grid */}
+          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-8">
+            {PUZZLE_TYPES.map((pz) => (
+              <motion.div
+                key={pz.id}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => startPuzzle(pz)}
+                className={`cursor-pointer rounded-3xl p-5 border flex flex-col justify-between transition-all ${
+                  isNight
+                    ? 'bg-[#151a26]/80 hover:bg-[#182133] border-white/10 hover:border-white/20 shadow-md'
+                    : 'bg-white/90 hover:bg-white border-[#2E1C12]/10 hover:border-[#A65D40]/30 shadow-sm hover:shadow-md'
+                }`}
+              >
+                <div className="space-y-2">
+                  <span className={`text-[10.5px] uppercase tracking-wider font-semibold ${
+                    isNight ? 'text-sky-300/70' : 'text-[#8E4B31]'
+                  }`}>
+                    {pz.category}
+                  </span>
+                  <h3 className="font-heading text-lg font-semibold tracking-wide">
+                    {pz.name}
+                  </h3>
+                  <p className={`text-xs font-light leading-relaxed ${
+                    isNight ? 'text-white/55' : 'text-[#3D2A1D]/70'
+                  }`}>
+                    {pz.desc}
+                  </p>
+                </div>
+
+                <div className="mt-5 pt-3 border-t flex items-center justify-between">
+                  <span className={`text-[11px] font-medium ${isNight ? 'text-white/40' : 'text-[#3D2A1D]/50'}`}>
+                    3×3 Grid
+                  </span>
+                  <span className={`text-xs font-semibold flex items-center gap-1 ${
+                    isNight ? 'text-sky-300' : 'text-[#8E4B31]'
+                  }`}>
+                    Play →
                   </span>
                 </div>
-              );
-            })}
+              </motion.div>
+            ))}
           </div>
-        )}
-      </div>
+        </motion.div>
+      )}
 
-      <div className="h-10 pb-4 text-center z-10 pointer-events-none">
-        <p className={`text-[12px] italic ${isNight ? 'text-white/20' : 'text-[#3D2A1D]/45'}`}>
-          {!isCompleted && 'Tap a piece, then another to swap their positions.'}
-        </p>
-      </div>
+      {/* VIEW 2: ACTIVE PUZZLE SCREEN */}
+      {currentView === 'play' && (
+        <motion.div
+          key="play"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="w-full h-full flex flex-col items-center justify-between"
+        >
+          {/* Top Puzzle Header Controls */}
+          <div className="w-full max-w-xl flex items-center justify-between px-4 py-2.5 z-20 border-b border-black/5 dark:border-white/5">
+            <button
+              onClick={() => setCurrentView('gallery')}
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all ${
+                isNight 
+                  ? 'bg-white/5 border-white/10 text-white/80 hover:text-white hover:bg-white/10' 
+                  : 'bg-white/80 border-[#2E1C12]/10 text-[#3D2A1D] hover:bg-white'
+              }`}
+            >
+              <Grid size={13} />
+              <span>Puzzles</span>
+            </button>
+
+            <span className="font-heading text-sm font-semibold tracking-wide truncate">
+              {selectedPuzzle.name}
+            </span>
+
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-medium ${isNight ? 'text-white/40' : 'text-[#3D2A1D]/50'}`}>
+                {moves} moves
+              </span>
+              <button
+                onClick={() => startPuzzle(selectedPuzzle)}
+                className={`p-2 rounded-xl border text-xs transition-all ${
+                  isNight ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-white/80 border-[#2E1C12]/10 text-[#3D2A1D] hover:bg-white'
+                }`}
+                title="Restart puzzle"
+              >
+                <RotateCcw size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Puzzle Board */}
+          <div className="flex-1 w-full max-w-md flex flex-col items-center justify-center p-4 z-10 relative">
+            
+            {/* Completion Modal Overlay */}
+            <AnimatePresence>
+              {isCompleted && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="absolute inset-4 z-30 rounded-3xl backdrop-blur-xl border flex flex-col items-center justify-center text-center p-6 shadow-2xl bg-black/60 border-white/15 text-white space-y-4"
+                >
+                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xl">
+                    🌿
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="font-heading text-2xl font-medium tracking-tight">
+                      You found your way through. 🌿
+                    </h3>
+                    <p className="text-xs text-white/70 font-light max-w-xs leading-relaxed">
+                      A little focus can be a nice place to rest.
+                    </p>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => startPuzzle(selectedPuzzle)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-white text-slate-900 hover:bg-slate-100 transition-all active:scale-95 shadow-sm"
+                    >
+                      Play Another
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('gallery')}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all active:scale-95"
+                    >
+                      Choose Puzzle
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 1. SLIDING PUZZLE RENDERER */}
+            {selectedPuzzle.type === 'sliding' && (
+              <div className={`w-72 h-72 rounded-3xl p-3 grid grid-cols-3 gap-2.5 border shadow-inner ${
+                isNight ? 'bg-[#101522]/90 border-white/10' : 'bg-white/80 border-[#2E1C12]/10'
+              }`}>
+                {tiles.map((tileVal, idx) => {
+                  if (tileVal === null) {
+                    return (
+                      <div 
+                        key="empty" 
+                        className={`rounded-2xl border-2 border-dashed ${
+                          isNight ? 'border-white/10 bg-black/20' : 'border-[#2E1C12]/10 bg-[#2E1C12]/[0.02]'
+                        }`} 
+                      />
+                    );
+                  }
+                  return (
+                    <motion.button
+                      key={tileVal}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleSlidingClick(idx)}
+                      className={`rounded-2xl border flex items-center justify-center font-heading text-2xl font-bold shadow-sm transition-colors ${
+                        isNight 
+                          ? 'bg-[#1e2738] border-white/15 text-sky-200 hover:bg-[#253248]' 
+                          : 'bg-white border-[#2E1C12]/15 text-[#3D2A1D] hover:bg-[#F5F0E6]'
+                      }`}
+                    >
+                      {tileVal}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 2. TILE SWAP PUZZLE RENDERER */}
+            {selectedPuzzle.type === 'tile_swap' && (
+              <div className={`w-72 h-72 rounded-3xl p-3 grid grid-cols-3 gap-2.5 border shadow-inner ${
+                isNight ? 'bg-[#101522]/90 border-white/10' : 'bg-white/80 border-[#2E1C12]/10'
+              }`}>
+                {tiles.map((tile, idx) => {
+                  const isSelected = selectedTileIdx === idx;
+                  const isCorrect = tile.correctIdx === idx;
+
+                  return (
+                    <motion.button
+                      key={tile.id}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleTileSwapClick(idx)}
+                      style={{ backgroundColor: isNight ? tile.color : tile.color + 'dd' }}
+                      className={`rounded-2xl border p-2 flex flex-col items-center justify-center text-center transition-all relative overflow-hidden shadow-sm ${
+                        isSelected 
+                          ? 'ring-2 ring-amber-400 scale-105 shadow-lg z-20' 
+                          : 'border-white/20'
+                      }`}
+                    >
+                      <span className="text-white text-[11px] font-medium leading-tight select-none drop-shadow-sm">
+                        {tile.label}
+                      </span>
+                      {isCorrect && (
+                        <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 shadow-xs" />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 3. MEMORY MATCH PUZZLE RENDERER */}
+            {selectedPuzzle.type === 'memory' && (
+              <div className={`w-80 h-72 rounded-3xl p-3 grid grid-cols-4 gap-2.5 border shadow-inner ${
+                isNight ? 'bg-[#101522]/90 border-white/10' : 'bg-white/80 border-[#2E1C12]/10'
+              }`}>
+                {memoryCards.map((card, idx) => {
+                  const isFlipped = flippedCards.includes(idx) || matchedCards.includes(idx);
+                  const isMatched = matchedCards.includes(idx);
+
+                  return (
+                    <motion.button
+                      key={card.id}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.96 }}
+                      onClick={() => handleMemoryCardClick(idx)}
+                      className={`rounded-2xl border flex items-center justify-center text-2xl transition-all shadow-sm ${
+                        isMatched
+                          ? 'bg-emerald-500/20 border-emerald-500/30 opacity-75'
+                          : isFlipped
+                            ? (isNight ? 'bg-[#1e2738] border-white/20 text-white' : 'bg-white border-[#2E1C12]/20 text-black')
+                            : (isNight ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-[#FAF6ED] border-[#2E1C12]/10 hover:bg-white')
+                      }`}
+                    >
+                      {isFlipped ? card.sym : '🌱'}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
+
+          </div>
+
+          {/* Bottom Guidance Prompt */}
+          <div className="w-full text-center pb-5 z-20 pointer-events-none">
+            <p className={`text-[11.5px] italic ${isNight ? 'text-white/40' : 'text-[#3D2A1D]/50'}`}>
+              {selectedPuzzle.type === 'sliding' && 'Slide tiles into the empty space to complete the sequence.'}
+              {selectedPuzzle.type === 'tile_swap' && 'Tap a tile then tap another to swap their positions.'}
+              {selectedPuzzle.type === 'memory' && 'Flip cards gently to match tranquil pairs.'}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
     </div>
   );
 }
